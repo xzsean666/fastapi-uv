@@ -1,0 +1,43 @@
+[Unit]
+Description=FastAPI Application
+After=network.target
+
+[Service]
+Type=forking
+User=sean
+Group=sean
+WorkingDirectory=/home/sean/git/fastapi-uv
+Environment=PATH=/home/sean/git/fastapi-uv/.venv/bin:/usr/bin:/bin
+EnvironmentFile=/home/sean/git/fastapi-uv/.env.production
+
+# 启动命令
+ExecStart=/home/sean/git/fastapi-uv/.venv/bin/uv run gunicorn app.app:app \
+    --workers 4 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:8000 \
+    --timeout 30 \
+    --keep-alive 2 \
+    --daemon \
+    --pid /home/sean/git/fastapi-uv/pids/gunicorn.pid \
+    --access-logfile /home/sean/git/fastapi-uv/logs/access.log \
+    --error-logfile /home/sean/git/fastapi-uv/logs/error.log
+
+# 停止命令
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+
+# PID文件
+PIDFile=/home/sean/git/fastapi-uv/pids/gunicorn.pid
+
+# 重启策略
+Restart=always
+RestartSec=5
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/sean/git/fastapi-uv/logs /home/sean/git/fastapi-uv/pids
+
+[Install]
+WantedBy=multi-user.target 
